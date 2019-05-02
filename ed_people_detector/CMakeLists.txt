@@ -21,9 +21,9 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_library(people_detector_plugin
+add_library(ed_people_detector_plugin
   src/people_detector_plugin.cpp
 )
 
-target_link_libraries(people_detector_plugin ${catkin_LIBRARIES})
-add_dependencies(people_detector_plugin ${catkin_EXPORTED_TARGETS})
+target_link_libraries(ed_people_detector_plugin ${catkin_LIBRARIES})
+add_dependencies(ed_people_detector_plugin ${catkin_EXPORTED_TARGETS})

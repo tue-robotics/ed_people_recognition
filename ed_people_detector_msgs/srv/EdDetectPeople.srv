@@ -1,6 +1,6 @@
-sensor_msgs/Image rgb_image
-sensor_msgs/Image depth_image
-sensor_msgs/CameraInfo camera_info
+sensor_msgs/Image image_rgb
+sensor_msgs/Image image_depth
+sensor_msgs/CameraInfo camera_info_depth
 ---
-std_msgs/UInt8 number_detected_people
+ed_msgs/EntityInfo[] detected_persons
 std_msgs/Bool succes

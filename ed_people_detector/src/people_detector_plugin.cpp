@@ -51,6 +51,14 @@ void PeopleDectectorPlugin::process(const ed::WorldModel& world, ed::UpdateReque
 bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdDetectPeople::Request& req, ed_people_detector_msgs::EdDetectPeople::Response& res)
 {
     std::cout << "srvEdDetectPeople" << std::endl;
+    people_detection_3d_msgs::DetectPeople3DRequest req_3d;
+    req_3d.image_rgb = req.image_rgb;
+    req_3d.image_depth = req.image_depth;
+    req_3d.camera_info_depth = req.camera_info_depth;
+
+    people_detection_3d_msgs::DetectPeople3DResponse res_3d;
+    srv_people_detector_3d_client_.call(req_3d, res_3d);
+
 }
 
 // ----------------------------------------------------------------------------------------------------
