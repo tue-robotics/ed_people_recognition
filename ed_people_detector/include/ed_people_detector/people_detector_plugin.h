@@ -4,6 +4,8 @@
 #include <ed/plugin.h>
 #include <ed/world_model.h>
 
+#include "ed_people_detector_msgs/EdDetectPeople.h"
+
 #include <ros/callback_queue.h>
 #include <ros/service.h>
 #include <ros/service_client.h>
@@ -55,12 +57,14 @@ public:
      */
     void process(const ed::WorldModel& world, ed::UpdateRequest& req);
 
+    bool srvEdDetectPeople(const ed_people_detector_msgs::EdDetectPeople::Request& req, ed_people_detector_msgs::EdDetectPeople::Response& res);
+
     // --------------------
 
 private:
 
     ros::ServiceServer srv_ed_people_detector_;
-    ros::ServiceClient srv_people_detector_3d_;
+    ros::ServiceClient srv_people_detector_3d_client_;
 
     ros::CallbackQueue cb_queue_;
     const ed::WorldModel* world_;

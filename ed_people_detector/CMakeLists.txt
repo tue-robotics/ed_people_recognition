@@ -6,12 +6,14 @@ add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
   ed
+  ed_people_detector_msgs
+  people_detection_3d_msgs
   roscpp
 )
 
 catkin_package(
   CATKIN_DEPENDS
-    ed roscpp
+    ed ed_people_detector_msgs roscpp
 )
 
 include_directories(
@@ -24,3 +26,4 @@ add_library(people_detector_plugin
 )
 
 target_link_libraries(people_detector_plugin ${catkin_LIBRARIES})
+add_dependencies(people_detector_plugin ${catkin_EXPORTED_TARGETS})
