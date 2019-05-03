@@ -2,5 +2,5 @@ sensor_msgs/Image image_rgb
 sensor_msgs/Image image_depth
 sensor_msgs/CameraInfo camera_info_depth
 ---
-ed_msgs/EntityInfo[] detected_persons
+std_msgs/String[] detected_person_ids
 std_msgs/Bool succes

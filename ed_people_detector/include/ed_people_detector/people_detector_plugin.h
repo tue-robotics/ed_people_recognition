@@ -2,7 +2,7 @@
 #define ed_people_detector_plugin_h_
 
 #include <ed/plugin.h>
-#include <ed/world_model.h>
+#include <ed/types.h>
 
 #include "ed_people_detector_msgs/EdDetectPeople.h"
 
@@ -67,7 +67,9 @@ private:
     ros::ServiceClient srv_people_detector_3d_client_;
 
     ros::CallbackQueue cb_queue_;
+
     const ed::WorldModel* world_;
+    ed::UpdateRequest* update_req_;
 
 };
 

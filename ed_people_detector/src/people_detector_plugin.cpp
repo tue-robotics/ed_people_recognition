@@ -1,12 +1,17 @@
 #include "ed_people_detector/people_detector_plugin.h"
 
 #include <ed/entity.h>
+#include <ed/update_request.h>
+#include <ed/world_model.h>
 #include <tue/config/reader.h>
 
 #include <ros/node_handle.h>
 #include <ros/advertise_service_options.h>
 
 #include <people_detection_3d_msgs/DetectPeople3D.h>
+
+#include <geolib/ros/msg_conversions.h>
+#include <geolib/math_types.h>
 
 
 // ----------------------------------------------------------------------------------------------------
@@ -43,6 +48,8 @@ void PeopleDectectorPlugin::process(const ed::WorldModel& world, ed::UpdateReque
     std::cout << "process" << std::endl;
     // Check for services
     world_ = &world;
+    update_req_ = &req;
+
     cb_queue_.callAvailable();
 }
 
@@ -59,6 +66,145 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
     people_detection_3d_msgs::DetectPeople3DResponse res_3d;
     srv_people_detector_3d_client_.call(req_3d, res_3d);
 
+    for (auto it = world_->begin(); it != world_->end(); ++it)
+    {
+        const ed::EntityConstPtr& e = *it;
+        if (!e)
+        {
+            if (e->hasType("unknown_person"))
+                update_req_->removeEntity(e->id());
+        }
+    }
+
+    for (auto it = res_3d.people.cbegin(); it != res_3d.people.cend(); ++it)
+    {
+        std::string id_string;
+        if (!it->name.empty() && world_->getEntity(it->name))
+        {
+            id_string = it->name;
+            update_req_->setType(id_string, "unknown_person");
+        }
+        else
+            id_string = ed::Entity::generateID().str();
+
+        update_req_->setType(id_string, "person");
+
+        geo::Pose3D pose;
+        convert(it->position, pose.t);
+        update_req_->setPose(id_string, pose);
+
+
+//        string name
+//        uint8 age
+//        uint8 gender
+//        float64 gender_confidence
+//        string posture
+//        string emotion
+//        string[] shirt_colors
+//        image_recognition_msgs/Recognition[] body_parts_pose
+//          image_recognition_msgs/CategoricalDistribution categorical_distribution
+//            image_recognition_msgs/CategoryProbability[] probabilities
+//              string label
+//              float32 probability
+//            float32 unknown_probability
+//          sensor_msgs/RegionOfInterest roi
+//            uint32 x_offset
+//            uint32 y_offset
+//            uint32 height
+//            uint32 width
+//            bool do_rectify
+//          uint32 group_id
+//        geometry_msgs/Point position
+//          float64 x
+//          float64 y
+//          float64 z
+//        geometry_msgs/Point velocity
+//          float64 x
+//          float64 y
+//          float64 z
+//        float64 reliability
+//        string[] tagnames
+//        string[] tags
+//        geometry_msgs/Pose pointing_pose
+//          geometry_msgs/Point position
+//            float64 x
+//            float64 y
+//            float64 z
+//          geometry_msgs/Quaternion orientation
+//            float64 x
+//            float64 y
+//            float64 z
+//            float64 w
+
+
+
+        tue::Configuration data_config;
+        data_config.setValue("age", it->age);
+        data_config.setValue("gender", it->gender);
+        data_config.setValue("gender_confidence", it->gender_confidence);
+        data_config.setValue("posture", it->posture);
+        data_config.setValue("emotion", it->emotion);
+        data_config.writeArray("shirt_colors");
+        for (auto it2 = it->shirt_colors.cbegin(); it2 != it->shirt_colors.cend(); ++it2)
+        {
+            data_config.addArrayItem();
+            data_config.setValue("value", *it2);
+            data_config.endArrayItem();
+        }
+        data_config.endArray();
+
+        data_config.writeGroup("position");
+        data_config.setValue("x", it->position.x);
+        data_config.setValue("y", it->position.y);
+        data_config.setValue("z", it->position.z);
+        data_config.endGroup();
+
+        data_config.writeGroup("velocity");
+        data_config.setValue("x", it->velocity.x);
+        data_config.setValue("y", it->velocity.y);
+        data_config.setValue("z", it->velocity.z);
+        data_config.endGroup();
+
+        data_config.setValue("reliability", it->reliability);
+
+        data_config.writeArray("tags");
+        for (auto it2 = it->tagnames.cbegin(); it2 != it->tagnames.cend(); ++it2)
+        {
+            data_config.addArrayItem();
+            data_config.setValue("value", *it2);
+            data_config.endArrayItem();
+        }
+        data_config.endArray();
+
+        data_config.writeArray("tags");
+        for (auto it2 = it->tags.cbegin(); it2 != it->tags.cend(); ++it2)
+        {
+            data_config.addArrayItem();
+            data_config.setValue("value", *it2);
+            data_config.endArrayItem();
+        }
+        data_config.endArray();
+
+        data_config.writeGroup("pointing_pose");
+        data_config.writeGroup("position");
+        data_config.setValue("x", it->pointing_pose.position.x);
+        data_config.setValue("y", it->pointing_pose.position.y);
+        data_config.setValue("z", it->pointing_pose.position.z);
+        data_config.endGroup();
+
+        data_config.writeGroup("orientation");
+        data_config.setValue("x", it->pointing_pose.orientation.x);
+        data_config.setValue("y", it->pointing_pose.orientation.y);
+        data_config.setValue("z", it->pointing_pose.orientation.z);
+        data_config.setValue("w", it->pointing_pose.orientation.w);
+        data_config.endGroup();
+        data_config.endGroup();
+
+        update_req_->addData(id_string, data_config.data());
+
+    }
+
+    return true;
 }
 
 // ----------------------------------------------------------------------------------------------------
