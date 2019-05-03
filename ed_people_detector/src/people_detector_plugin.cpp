@@ -18,7 +18,6 @@
 
 void PeopleDectectorPlugin::configure(tue::Configuration config)
 {
-    std::cout << "Configure" << std::endl;
     ros::NodeHandle nh("~/people_detector");
     ros::NodeHandle nh2("~");
 
@@ -38,14 +37,12 @@ void PeopleDectectorPlugin::configure(tue::Configuration config)
 
 void PeopleDectectorPlugin::initialize()
 {
-    std::cout << "initialize" << std::endl;
 }
 
 // ----------------------------------------------------------------------------------------------------
 
 void PeopleDectectorPlugin::process(const ed::WorldModel& world, ed::UpdateRequest& req)
 {
-    std::cout << "process" << std::endl;
     // Check for services
     world_ = &world;
     update_req_ = &req;
@@ -57,7 +54,6 @@ void PeopleDectectorPlugin::process(const ed::WorldModel& world, ed::UpdateReque
 
 bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdDetectPeople::Request& req, ed_people_detector_msgs::EdDetectPeople::Response& res)
 {
-    std::cout << "srvEdDetectPeople" << std::endl;
     people_detection_3d_msgs::DetectPeople3DRequest req_3d;
     req_3d.image_rgb = req.image_rgb;
     req_3d.image_depth = req.image_depth;
@@ -69,7 +65,7 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
     for (auto it = world_->begin(); it != world_->end(); ++it)
     {
         const ed::EntityConstPtr& e = *it;
-        if (!e)
+        if (e)
         {
             if (e->hasType("unknown_person"))
                 update_req_->removeEntity(e->id());
@@ -79,13 +75,16 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
     for (auto it = res_3d.people.cbegin(); it != res_3d.people.cend(); ++it)
     {
         std::string id_string;
-        if (!it->name.empty() && world_->getEntity(it->name))
+        if (!it->name.empty())
         {
             id_string = it->name;
-            update_req_->setType(id_string, "unknown_person");
+            update_req_->setType(id_string, id_string);
         }
         else
+        {
             id_string = ed::Entity::generateID().str();
+            update_req_->setType(id_string, "unknown_person");
+        }
 
         update_req_->setType(id_string, "person");
 
