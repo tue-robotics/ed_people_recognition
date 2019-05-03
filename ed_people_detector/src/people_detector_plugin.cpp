@@ -144,14 +144,21 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
         data_config.setValue("gender_confidence", it->gender_confidence);
         data_config.setValue("posture", it->posture);
         data_config.setValue("emotion", it->emotion);
-        data_config.writeArray("shirt_colors");
+
+        std::stringstream shirt_colors_stream;
+        shirt_colors_stream << "[";
+        bool stream_first = true;
         for (auto it2 = it->shirt_colors.cbegin(); it2 != it->shirt_colors.cend(); ++it2)
         {
-            data_config.addArrayItem();
-            data_config.setValue("value", *it2);
-            data_config.endArrayItem();
+            if (!stream_first)
+            {
+                shirt_colors_stream << ", ";
+                stream_first = false;
+            }
+            shirt_colors_stream << *it2;
         }
-        data_config.endArray();
+        shirt_colors_stream << "]";
+        data_config.setValue("shirt_colors", shirt_colors_stream.str());
 
         data_config.writeGroup("position");
         data_config.setValue("x", it->position.x);
@@ -167,23 +174,34 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
 
         data_config.setValue("reliability", it->reliability);
 
-        data_config.writeArray("tags");
+        std::stringstream tagnames_stream;
+        tagnames_stream << "[";
+        stream_first = true;
         for (auto it2 = it->tagnames.cbegin(); it2 != it->tagnames.cend(); ++it2)
         {
-            data_config.addArrayItem();
-            data_config.setValue("value", *it2);
-            data_config.endArrayItem();
+            if (!stream_first)
+            {
+                tagnames_stream << ", ";
+                stream_first = false;
+            }
+            tagnames_stream << *it2;
         }
-        data_config.endArray();
+        tagnames_stream << "]";
+        data_config.setValue("tagnames", tagnames_stream.str());
 
-        data_config.writeArray("tags");
+        std::stringstream tags_stream;
+        tags_stream << "[";
         for (auto it2 = it->tags.cbegin(); it2 != it->tags.cend(); ++it2)
         {
-            data_config.addArrayItem();
-            data_config.setValue("value", *it2);
-            data_config.endArrayItem();
+            if (!stream_first)
+            {
+                tags_stream << ", ";
+                stream_first = false;
+            }
+            tags_stream << *it2;
         }
-        data_config.endArray();
+        tags_stream << "]";
+        data_config.setValue("tags", tags_stream.str());
 
         data_config.writeGroup("pointing_pose");
         data_config.writeGroup("position");
@@ -201,6 +219,8 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
         data_config.endGroup();
 
         update_req_->addData(id_string, data_config.data());
+
+        res.detected_person_ids.push_back(id_string);
 
     }
 
