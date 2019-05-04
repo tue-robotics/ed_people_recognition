@@ -63,6 +63,11 @@ void PeopleDectectorPlugin::configure(tue::Configuration config)
     std::string people_detector_3d_srv_name;
     config.value("people_detector_3d_service", people_detector_3d_srv_name);
     srv_people_detector_3d_client_ = nh2.serviceClient<people_detection_3d_msgs::DetectPeople3D>(people_detector_3d_srv_name);
+
+    if(!srv_people_detector_3d_client_.exists())
+    {
+        ROS_WARN("[ED People Detector]: %s does not (yet) exist", people_detector_3d_srv_name.c_str());
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -97,6 +102,8 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
     people_detection_3d_msgs::DetectPeople3DResponse res_3d;
     srv_people_detector_3d_client_.call(req_3d, res_3d);
 
+    ROS_DEBUG("[ED People Detector]: detected %i people", res_3d.people.size());
+
     for (auto it = world_->begin(); it != world_->end(); ++it)
     {
         const ed::EntityConstPtr& e = *it;
@@ -110,21 +117,18 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
     for (auto it = res_3d.people.cbegin(); it != res_3d.people.cend(); ++it)
     {
         geo::Pose3D person_pose;
-        // Try to transform before doing anything. So there are not people with missing atributes.
+        // Try to transform before doing anything. So there are no people with missing attributes.
         try
         {
             tf::StampedTransform t_person_pose;
             tf_listener_->lookupTransform("map", it->header.frame_id, it->header.stamp, t_person_pose);
             geo::convert(t_person_pose, person_pose);
-
-
         }
         catch(const tf::TransformException& ex)
         {
-            ROS_ERROR_STREAM("[ED People Detector]: " << ex.what());
+            ROS_ERROR_STREAM("[ED People Detector]: Could not get transform to map" << ex.what());
             continue;
         }
-
 
         std::string id_string;
         if (!it->name.empty())
@@ -139,9 +143,6 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
         }
 
         update_req_->setType(id_string, "person");
-
-        // Can only be set after determining the id_string
-        update_req_->setPose(id_string, person_pose);
 
 //        string name
 //        uint8 age
@@ -237,11 +238,10 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
         update_req_->addData(id_string, data_config.data());
 
         res.detected_person_ids.push_back(id_string);
-
     }
 
     res.success = true;
-
+    ROS_DEBUG("[ED People Detector]: inserted %i entities", res.detected_person_ids.size());
     return true;
 }
 
