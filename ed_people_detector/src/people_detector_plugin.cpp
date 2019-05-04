@@ -11,8 +11,40 @@
 #include <people_detection_3d_msgs/DetectPeople3D.h>
 
 #include <geolib/ros/msg_conversions.h>
+#include <geolib/ros/tf_conversions.h>
 #include <geolib/math_types.h>
 
+
+void VectorOfStringToStringOfVector(const std::vector<std::string>& vector, std::string& string)
+{
+    std::stringstream ss;
+    ss << "[";
+    bool stream_first = true;
+    for (auto it = vector.cbegin(); it != vector.cend(); ++it)
+    {
+        if (!stream_first)
+        {
+            ss << ", ";
+            stream_first = false;
+        }
+        ss << *it;
+    }
+    ss << "]";
+    string = ss.str();
+}
+
+// ----------------------------------------------------------------------------------------------------
+
+PeopleDectectorPlugin::PeopleDectectorPlugin() : tf_listener_(nullptr)
+{
+}
+
+// ----------------------------------------------------------------------------------------------------
+
+PeopleDectectorPlugin::~PeopleDectectorPlugin()
+{
+    delete tf_listener_;
+}
 
 // ----------------------------------------------------------------------------------------------------
 
@@ -37,6 +69,8 @@ void PeopleDectectorPlugin::configure(tue::Configuration config)
 
 void PeopleDectectorPlugin::initialize()
 {
+    if (!tf_listener_)
+        tf_listener_ = new tf::TransformListener;
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -54,6 +88,7 @@ void PeopleDectectorPlugin::process(const ed::WorldModel& world, ed::UpdateReque
 
 bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdDetectPeople::Request& req, ed_people_detector_msgs::EdDetectPeople::Response& res)
 {
+    ROS_DEBUG_STREAM("[ED People Detector]: srvEdDetectPeople");
     people_detection_3d_msgs::DetectPeople3DRequest req_3d;
     req_3d.image_rgb = req.image_rgb;
     req_3d.image_depth = req.image_depth;
@@ -88,10 +123,20 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
 
         update_req_->setType(id_string, "person");
 
-        geo::Pose3D pose;
-        convert(it->position, pose.t);
-        update_req_->setPose(id_string, pose);
+        try
+        {
+            tf::StampedTransform t_person_pose;
+            tf_listener_->lookupTransform("map", it->header.frame_id, it->header.stamp, t_person_pose);
+            geo::Pose3D person_pose;
+            geo::convert(t_person_pose, person_pose);
+            update_req_->setPose(id_string, person_pose);
 
+        }
+        catch(const tf::TransformException& ex)
+        {
+            ROS_ERROR_STREAM("[ED People Detector]: " << ex.what());
+            continue;
+        }
 
 //        string name
 //        uint8 age
@@ -135,29 +180,17 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
 //            float64 z
 //            float64 w
 
-
-
         tue::Configuration data_config;
+        data_config.setValue("name", it->name);
         data_config.setValue("age", it->age);
         data_config.setValue("gender", it->gender);
         data_config.setValue("gender_confidence", it->gender_confidence);
         data_config.setValue("posture", it->posture);
         data_config.setValue("emotion", it->emotion);
 
-        std::stringstream shirt_colors_stream;
-        shirt_colors_stream << "[";
-        bool stream_first = true;
-        for (auto it2 = it->shirt_colors.cbegin(); it2 != it->shirt_colors.cend(); ++it2)
-        {
-            if (!stream_first)
-            {
-                shirt_colors_stream << ", ";
-                stream_first = false;
-            }
-            shirt_colors_stream << *it2;
-        }
-        shirt_colors_stream << "]";
-        data_config.setValue("shirt_colors", shirt_colors_stream.str());
+        std::string shirt_colors;
+        VectorOfStringToStringOfVector(it->shirt_colors, shirt_colors);
+        data_config.setValue("shirt_colors", shirt_colors);
 
         data_config.writeGroup("position");
         data_config.setValue("x", it->position.x);
@@ -173,34 +206,13 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
 
         data_config.setValue("reliability", it->reliability);
 
-        std::stringstream tagnames_stream;
-        tagnames_stream << "[";
-        stream_first = true;
-        for (auto it2 = it->tagnames.cbegin(); it2 != it->tagnames.cend(); ++it2)
-        {
-            if (!stream_first)
-            {
-                tagnames_stream << ", ";
-                stream_first = false;
-            }
-            tagnames_stream << *it2;
-        }
-        tagnames_stream << "]";
-        data_config.setValue("tagnames", tagnames_stream.str());
+        std::string tagnames;
+        VectorOfStringToStringOfVector(it->tagnames, tagnames);
+        data_config.setValue("tagnames", tagnames);
 
-        std::stringstream tags_stream;
-        tags_stream << "[";
-        for (auto it2 = it->tags.cbegin(); it2 != it->tags.cend(); ++it2)
-        {
-            if (!stream_first)
-            {
-                tags_stream << ", ";
-                stream_first = false;
-            }
-            tags_stream << *it2;
-        }
-        tags_stream << "]";
-        data_config.setValue("tags", tags_stream.str());
+        std::string tags;
+        VectorOfStringToStringOfVector(it->tags, tags);
+        data_config.setValue("tags", tags);
 
         data_config.writeGroup("pointing_pose");
         data_config.writeGroup("position");

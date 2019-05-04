@@ -10,11 +10,8 @@
 #include <ros/service.h>
 #include <ros/service_client.h>
 
-/**
- * @brief The KinectNavigationPlugin class
- * ED plugin for de depth_sensor_integrator. Which uses the depth image to detect objects.
- * Based on the computed normals, points are computed that are probably measured due to an unmodeled object. These are published as a PointCloud.
- */
+#include <tf/transform_listener.h>
+
 class PeopleDectectorPlugin : public ed::Plugin
 {
 
@@ -23,12 +20,12 @@ public:
     /**
      * @brief constructor
      */
-    PeopleDectectorPlugin() {}
+    PeopleDectectorPlugin();
 
     /**
      * @brief destructor
      */
-    virtual ~PeopleDectectorPlugin() {}
+    virtual ~PeopleDectectorPlugin();
 
     /**
      * @brief configure
@@ -70,6 +67,8 @@ private:
 
     const ed::WorldModel* world_;
     ed::UpdateRequest* update_req_;
+
+    tf::TransformListener* tf_listener_;
 
 };
 
