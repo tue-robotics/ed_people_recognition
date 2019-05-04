@@ -109,6 +109,23 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
 
     for (auto it = res_3d.people.cbegin(); it != res_3d.people.cend(); ++it)
     {
+        geo::Pose3D person_pose;
+        // Try to transform before doing anything. So there are not people with missing atributes.
+        try
+        {
+            tf::StampedTransform t_person_pose;
+            tf_listener_->lookupTransform("map", it->header.frame_id, it->header.stamp, t_person_pose);
+            geo::convert(t_person_pose, person_pose);
+
+
+        }
+        catch(const tf::TransformException& ex)
+        {
+            ROS_ERROR_STREAM("[ED People Detector]: " << ex.what());
+            continue;
+        }
+
+
         std::string id_string;
         if (!it->name.empty())
         {
@@ -123,20 +140,8 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
 
         update_req_->setType(id_string, "person");
 
-        try
-        {
-            tf::StampedTransform t_person_pose;
-            tf_listener_->lookupTransform("map", it->header.frame_id, it->header.stamp, t_person_pose);
-            geo::Pose3D person_pose;
-            geo::convert(t_person_pose, person_pose);
-            update_req_->setPose(id_string, person_pose);
-
-        }
-        catch(const tf::TransformException& ex)
-        {
-            ROS_ERROR_STREAM("[ED People Detector]: " << ex.what());
-            continue;
-        }
+        // Can only be set after determining the id_string
+        update_req_->setPose(id_string, person_pose);
 
 //        string name
 //        uint8 age
@@ -234,6 +239,8 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
         res.detected_person_ids.push_back(id_string);
 
     }
+
+    res.success = true;
 
     return true;
 }
