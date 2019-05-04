@@ -100,7 +100,16 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
     req_3d.camera_info_depth = req.camera_info_depth;
 
     people_detection_3d_msgs::DetectPeople3DResponse res_3d;
-    srv_people_detector_3d_client_.call(req_3d, res_3d);
+    if(!srv_people_detector_3d_client_.call(req_3d, res_3d))
+    {
+        if(!srv_people_detector_3d_client_.exists())
+        {
+            ROS_ERROR("[ED People Detector]: srv_people_detector_3d_client_ service does not exist");
+        }
+        ROS_ERROR("[ED People Detector]: srv_people_detector_3d_client_-call failed");
+        res.success = false;
+        return false;
+    }
 
     ROS_DEBUG("[ED People Detector]: detected %i people", res_3d.people.size());
 
