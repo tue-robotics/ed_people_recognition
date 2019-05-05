@@ -75,7 +75,11 @@ void PeopleDectectorPlugin::configure(tue::Configuration config)
 void PeopleDectectorPlugin::initialize()
 {
     if (!tf_listener_)
-        tf_listener_ = new tf::TransformListener;
+    {
+        ros::Duration tfCacheDuration;
+        tfCacheDuration = tfCacheDuration.fromSec(10);   // ten minute tf buffer!
+        tf_listener_ = new tf::TransformListener(tfCacheDuration);
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -124,7 +128,7 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
 
     for (auto it = res_3d.people.cbegin(); it != res_3d.people.cend(); ++it)
     {
-        geo::Pose3D person_pose_tf;
+        geo::Pose3D person_pose_tf = geo::Pose3D::identity();
         tf::StampedTransform t_person_pose_tf;
         // Try to transform before doing anything. So there are no people with missing attributes.
         try
@@ -152,9 +156,11 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
 
         update_req_->setType(id_string, "person");
 
-        geo::Pose3D person_pose;
+        geo::Pose3D person_pose = geo::Pose3D::identity();
+        std::cout << it->position << std::endl;
         geo::convert(it->position, person_pose.t);
         person_pose = person_pose_tf * person_pose;
+        person_pose.R = person_pose.R.identity();
 
         update_req_->setPose(id_string, person_pose);
 
