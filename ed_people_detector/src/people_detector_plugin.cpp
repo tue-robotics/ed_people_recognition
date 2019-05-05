@@ -103,15 +103,14 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
     if(!srv_people_detector_3d_client_.call(req_3d, res_3d))
     {
         if(!srv_people_detector_3d_client_.exists())
-        {
-            ROS_ERROR("[ED People Detector]: srv_people_detector_3d_client_ service does not exist");
-        }
-        ROS_ERROR("[ED People Detector]: srv_people_detector_3d_client_-call failed");
+            ROS_ERROR_STREAM("[ED People Detector]: people_detection_3d service, " << srv_people_detector_3d_client_.getService() << ", doesn't exist");
+
+        ROS_ERROR_STREAM("[ED People Detector]: srv_people_detector_3d_client_ call failed");
         res.success = false;
         return false;
     }
 
-    ROS_DEBUG("[ED People Detector]: detected %i people", res_3d.people.size());
+    ROS_DEBUG_STREAM("[ED People Detector]: received detection of " << res_3d.people.size() << " people");
 
     for (auto it = world_->begin(); it != world_->end(); ++it)
     {
@@ -125,13 +124,13 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
 
     for (auto it = res_3d.people.cbegin(); it != res_3d.people.cend(); ++it)
     {
-        geo::Pose3D person_pose;
+        geo::Pose3D person_pose_tf;
+        tf::StampedTransform t_person_pose_tf;
         // Try to transform before doing anything. So there are no people with missing attributes.
         try
         {
-            tf::StampedTransform t_person_pose;
-            tf_listener_->lookupTransform("map", it->header.frame_id, it->header.stamp, t_person_pose);
-            geo::convert(t_person_pose, person_pose);
+            tf_listener_->lookupTransform("map", it->header.frame_id, it->header.stamp, t_person_pose_tf);
+            geo::convert(t_person_pose_tf, person_pose_tf);
         }
         catch(const tf::TransformException& ex)
         {
@@ -153,6 +152,16 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
 
         update_req_->setType(id_string, "person");
 
+        geo::Pose3D person_pose;
+        geo::convert(it->position, person_pose.t);
+        person_pose = person_pose_tf * person_pose;
+
+        update_req_->setPose(id_string, person_pose);
+
+//        std_msgs/Header header
+//          uint32 seq
+//          time stamp
+//          string frame_id
 //        string name
 //        uint8 age
 //        uint8 gender
@@ -195,7 +204,18 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
 //            float64 z
 //            float64 w
 
+
         tue::Configuration data_config;
+
+        data_config.writeGroup("header");
+            data_config.setValue("seq", (int) it->header.seq);
+            data_config.writeGroup("stamp");
+                data_config.setValue("sec", (int) it->header.stamp.sec);
+                data_config.setValue("nsec", (int) it->header.stamp.nsec);
+            data_config.endGroup();
+            data_config.setValue("frame_id", it->header.frame_id);
+        data_config.endGroup();
+
         data_config.setValue("name", it->name);
         data_config.setValue("age", it->age);
         data_config.setValue("gender", it->gender);
@@ -230,18 +250,18 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
         data_config.setValue("tags", tags);
 
         data_config.writeGroup("pointing_pose");
-        data_config.writeGroup("position");
-        data_config.setValue("x", it->pointing_pose.position.x);
-        data_config.setValue("y", it->pointing_pose.position.y);
-        data_config.setValue("z", it->pointing_pose.position.z);
-        data_config.endGroup();
+            data_config.writeGroup("position");
+                data_config.setValue("x", it->pointing_pose.position.x);
+                data_config.setValue("y", it->pointing_pose.position.y);
+                data_config.setValue("z", it->pointing_pose.position.z);
+            data_config.endGroup();
 
-        data_config.writeGroup("orientation");
-        data_config.setValue("x", it->pointing_pose.orientation.x);
-        data_config.setValue("y", it->pointing_pose.orientation.y);
-        data_config.setValue("z", it->pointing_pose.orientation.z);
-        data_config.setValue("w", it->pointing_pose.orientation.w);
-        data_config.endGroup();
+            data_config.writeGroup("orientation");
+                data_config.setValue("x", it->pointing_pose.orientation.x);
+                data_config.setValue("y", it->pointing_pose.orientation.y);
+                data_config.setValue("z", it->pointing_pose.orientation.z);
+                data_config.setValue("w", it->pointing_pose.orientation.w);
+            data_config.endGroup();
         data_config.endGroup();
 
         update_req_->addData(id_string, data_config.data());
@@ -250,7 +270,7 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
     }
 
     res.success = true;
-    ROS_DEBUG("[ED People Detector]: inserted %i entities", res.detected_person_ids.size());
+    ROS_DEBUG_STREAM("[ED People Detector]: inserted "<< res.detected_person_ids.size() << " entities");
     return true;
 }
 
