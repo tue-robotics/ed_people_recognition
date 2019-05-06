@@ -73,11 +73,7 @@ void PeopleDectectorPlugin::configure(tue::Configuration config)
 void PeopleDectectorPlugin::initialize()
 {
     if (!tf_listener_)
-    {
-        ros::Duration tfCacheDuration;
-        tfCacheDuration = tfCacheDuration.fromSec(10);   // ten minute tf buffer!
-        tf_listener_ = new tf::TransformListener(tfCacheDuration);
-    }
+        tf_listener_ = new tf::TransformListener();
 }
 
 // ----------------------------------------------------------------------------------------------------
