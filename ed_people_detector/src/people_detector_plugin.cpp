@@ -154,11 +154,10 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
 
         update_req_->setType(id_string, "person");
 
+        // Convert position to
         geo::Pose3D person_pose = geo::Pose3D::identity();
-        std::cout << it->position << std::endl;
         geo::convert(it->position, person_pose.t);
-        person_pose = person_pose_tf * person_pose;
-        person_pose.R = person_pose.R.identity();
+        person_pose.t = person_pose_tf * person_pose.t;
 
         update_req_->setPose(id_string, person_pose);
 
