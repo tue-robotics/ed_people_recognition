@@ -23,11 +23,9 @@ void VectorOfStringToStringOfVector(const std::vector<std::string>& vector, std:
     for (auto it = vector.cbegin(); it != vector.cend(); ++it)
     {
         if (!stream_first)
-        {
             ss << ", ";
-            stream_first = false;
-        }
         ss << *it;
+        stream_first = false;
     }
     ss << "]";
     string = ss.str();
