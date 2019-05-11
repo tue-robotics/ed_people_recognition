@@ -1,10 +1,10 @@
-#ifndef ed_people_detection_plugin_h_
-#define ed_people_detection_plugin_h_
+#ifndef ed_people_recognition_plugin_h_
+#define ed_people_recognition_plugin_h_
 
 #include <ed/plugin.h>
 #include <ed/types.h>
 
-#include "ed_people_detection_msgs/EdDetectPeople.h"
+#include "ed_people_recognition_msgs/EdRecognizePeople.h"
 
 #include <ros/callback_queue.h>
 #include <ros/service.h>
@@ -31,7 +31,7 @@ public:
      * @brief configure
      * @param config
      * parameters:
-     *      people_detection_3d_service: /hero/people_detection/detect_people_3d
+     *      people_recognition_3d_service: /hero/people_recognition/detect_people_3d
      */
     void configure(tue::Configuration config);
 
@@ -47,14 +47,14 @@ public:
      */
     void process(const ed::WorldModel& world, ed::UpdateRequest& req);
 
-    bool srvEdDetectPeople(const ed_people_detection_msgs::EdDetectPeople::Request& req, ed_people_detection_msgs::EdDetectPeople::Response& res);
+    bool srvEdRecognizePeople(const ed_people_recognition_msgs::EdRecognizePeople::Request& req, ed_people_recognition_msgs::EdRecognizePeople::Response& res);
 
     // --------------------
 
 private:
 
-    ros::ServiceServer srv_ed_people_detection_;
-    ros::ServiceClient srv_people_detection_3d_client_;
+    ros::ServiceServer srv_ed_people_recognition_;
+    ros::ServiceClient srv_people_recognition_3d_client_;
 
     ros::CallbackQueue cb_queue_;
 
