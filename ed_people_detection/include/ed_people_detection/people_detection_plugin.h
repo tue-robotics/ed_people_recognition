@@ -1,10 +1,10 @@
-#ifndef ed_people_detector_plugin_h_
-#define ed_people_detector_plugin_h_
+#ifndef ed_people_detection_plugin_h_
+#define ed_people_detection_plugin_h_
 
 #include <ed/plugin.h>
 #include <ed/types.h>
 
-#include "ed_people_detector_msgs/EdDetectPeople.h"
+#include "ed_people_detection_msgs/EdDetectPeople.h"
 
 #include <ros/callback_queue.h>
 #include <ros/service.h>
@@ -12,7 +12,7 @@
 
 #include <tf/transform_listener.h>
 
-class PeopleDectectorPlugin : public ed::Plugin
+class PeopleDectectionPlugin : public ed::Plugin
 {
 
 public:
@@ -20,25 +20,18 @@ public:
     /**
      * @brief constructor
      */
-    PeopleDectectorPlugin();
+    PeopleDectectionPlugin();
 
     /**
      * @brief destructor
      */
-    virtual ~PeopleDectectorPlugin();
+    virtual ~PeopleDectectionPlugin();
 
     /**
      * @brief configure
      * @param config
-     * parametergroup: depth_sensor_integration
      * parameters:
-     *      frame_id: /map
-     *      topic: /amigo/top_kinect/rgbd
-     *      num_samples: 640
-     *      slope_threshold: 1
-     *      slope_window_size: 30
-     *      min_distance: 0.4
-     *      max_distance: 2.0
+     *      people_detection_3d_service: /hero/people_detection/detect_people_3d
      */
     void configure(tue::Configuration config);
 
@@ -54,14 +47,14 @@ public:
      */
     void process(const ed::WorldModel& world, ed::UpdateRequest& req);
 
-    bool srvEdDetectPeople(const ed_people_detector_msgs::EdDetectPeople::Request& req, ed_people_detector_msgs::EdDetectPeople::Response& res);
+    bool srvEdDetectPeople(const ed_people_detection_msgs::EdDetectPeople::Request& req, ed_people_detection_msgs::EdDetectPeople::Response& res);
 
     // --------------------
 
 private:
 
-    ros::ServiceServer srv_ed_people_detector_;
-    ros::ServiceClient srv_people_detector_3d_client_;
+    ros::ServiceServer srv_ed_people_detection_;
+    ros::ServiceClient srv_people_detection_3d_client_;
 
     ros::CallbackQueue cb_queue_;
 

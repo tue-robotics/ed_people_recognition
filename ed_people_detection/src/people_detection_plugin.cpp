@@ -1,4 +1,4 @@
-#include "ed_people_detector/people_detector_plugin.h"
+#include "ed_people_detection/people_detection_plugin.h"
 
 #include <ed/entity.h>
 #include <ed/update_request.h>
@@ -33,44 +33,44 @@ void VectorOfStringToStringOfVector(const std::vector<std::string>& vector, std:
 
 // ----------------------------------------------------------------------------------------------------
 
-PeopleDectectorPlugin::PeopleDectectorPlugin() : tf_listener_(nullptr)
+PeopleDectectionPlugin::PeopleDectectionPlugin() : tf_listener_(nullptr)
 {
 }
 
 // ----------------------------------------------------------------------------------------------------
 
-PeopleDectectorPlugin::~PeopleDectectorPlugin()
+PeopleDectectionPlugin::~PeopleDectectionPlugin()
 {
     delete tf_listener_;
 }
 
 // ----------------------------------------------------------------------------------------------------
 
-void PeopleDectectorPlugin::configure(tue::Configuration config)
+void PeopleDectectionPlugin::configure(tue::Configuration config)
 {
-    ros::NodeHandle nh("~/people_detector");
+    ros::NodeHandle nh("~/people_detection");
     ros::NodeHandle nh2("~");
 
-    ros::AdvertiseServiceOptions opt_srv_ed_people_detector =
-            ros::AdvertiseServiceOptions::create<ed_people_detector_msgs::EdDetectPeople>(
-                "detect_people", boost::bind(&PeopleDectectorPlugin::srvEdDetectPeople, this, _1, _2),
+    ros::AdvertiseServiceOptions opt_srv_ed_people_detection =
+            ros::AdvertiseServiceOptions::create<ed_people_detection_msgs::EdDetectPeople>(
+                "detect_people", boost::bind(&PeopleDectectionPlugin::srvEdDetectPeople, this, _1, _2),
                 ros::VoidPtr(), &cb_queue_);
 
-    srv_ed_people_detector_ = nh.advertiseService(opt_srv_ed_people_detector);
+    srv_ed_people_detection_ = nh.advertiseService(opt_srv_ed_people_detection);
 
-    std::string people_detector_3d_srv_name;
-    config.value("people_detector_3d_service", people_detector_3d_srv_name);
-    srv_people_detector_3d_client_ = nh2.serviceClient<people_detection_3d_msgs::DetectPeople3D>(people_detector_3d_srv_name);
+    std::string people_detection_3d_srv_name;
+    config.value("people_detection_3d_service", people_detection_3d_srv_name);
+    srv_people_detection_3d_client_ = nh2.serviceClient<people_detection_3d_msgs::DetectPeople3D>(people_detection_3d_srv_name);
 
-    if(!srv_people_detector_3d_client_.exists())
+    if(!srv_people_detection_3d_client_.exists())
     {
-        ROS_WARN("[ED People Detector]: %s does not (yet) exist", people_detector_3d_srv_name.c_str());
+        ROS_WARN("[ED People Detection]: %s does not (yet) exist", people_detection_3d_srv_name.c_str());
     }
 }
 
 // ----------------------------------------------------------------------------------------------------
 
-void PeopleDectectorPlugin::initialize()
+void PeopleDectectionPlugin::initialize()
 {
     if (!tf_listener_)
         tf_listener_ = new tf::TransformListener();
@@ -78,7 +78,7 @@ void PeopleDectectorPlugin::initialize()
 
 // ----------------------------------------------------------------------------------------------------
 
-void PeopleDectectorPlugin::process(const ed::WorldModel& world, ed::UpdateRequest& req)
+void PeopleDectectionPlugin::process(const ed::WorldModel& world, ed::UpdateRequest& req)
 {
     // Check for services
     world_ = &world;
@@ -89,26 +89,26 @@ void PeopleDectectorPlugin::process(const ed::WorldModel& world, ed::UpdateReque
 
 // ----------------------------------------------------------------------------------------------------
 
-bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdDetectPeople::Request& req, ed_people_detector_msgs::EdDetectPeople::Response& res)
+bool PeopleDectectionPlugin::srvEdDetectPeople(const ed_people_detection_msgs::EdDetectPeople::Request& req, ed_people_detection_msgs::EdDetectPeople::Response& res)
 {
-    ROS_DEBUG_STREAM("[ED People Detector]: srvEdDetectPeople");
+    ROS_DEBUG_STREAM("[ED People Detection]: srvEdDetectPeople");
     people_detection_3d_msgs::DetectPeople3DRequest req_3d;
     req_3d.image_rgb = req.image_rgb;
     req_3d.image_depth = req.image_depth;
     req_3d.camera_info_depth = req.camera_info_depth;
 
     people_detection_3d_msgs::DetectPeople3DResponse res_3d;
-    if(!srv_people_detector_3d_client_.call(req_3d, res_3d))
+    if(!srv_people_detection_3d_client_.call(req_3d, res_3d))
     {
-        if(!srv_people_detector_3d_client_.exists())
-            ROS_ERROR_STREAM("[ED People Detector]: people_detection_3d service, " << srv_people_detector_3d_client_.getService() << ", doesn't exist");
+        if(!srv_people_detection_3d_client_.exists())
+            ROS_ERROR_STREAM("[ED People Detection]: people_detection_3d service, " << srv_people_detection_3d_client_.getService() << ", doesn't exist");
 
-        ROS_ERROR_STREAM("[ED People Detector]: srv_people_detector_3d_client_ call failed");
+        ROS_ERROR_STREAM("[ED People Detection]: srv_people_detection_3d_client_ call failed");
         res.success = false;
         return false;
     }
 
-    ROS_DEBUG_STREAM("[ED People Detector]: received detection of " << res_3d.people.size() << " people");
+    ROS_DEBUG_STREAM("[ED People Detection]: received detection of " << res_3d.people.size() << " people");
 
     for (auto it = world_->begin(); it != world_->end(); ++it)
     {
@@ -132,7 +132,7 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
         }
         catch(const tf::TransformException& ex)
         {
-            ROS_ERROR_STREAM("[ED People Detector]: Could not get transform to map" << ex.what());
+            ROS_ERROR_STREAM("[ED People Detection]: Could not get transform to map" << ex.what());
             continue;
         }
 
@@ -269,11 +269,11 @@ bool PeopleDectectorPlugin::srvEdDetectPeople(const ed_people_detector_msgs::EdD
     }
 
     res.success = true;
-    ROS_DEBUG_STREAM("[ED People Detector]: inserted "<< res.detected_person_ids.size() << " entities");
+    ROS_DEBUG_STREAM("[ED People Detection]: inserted "<< res.detected_person_ids.size() << " entities");
     return true;
 }
 
 // ----------------------------------------------------------------------------------------------------
 
 
-ED_REGISTER_PLUGIN(PeopleDectectorPlugin)
+ED_REGISTER_PLUGIN(PeopleDectectionPlugin)

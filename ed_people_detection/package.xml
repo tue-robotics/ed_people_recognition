@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>ed_people_detector</name>
+  <name>ed_people_detection</name>
   <version>0.0.1</version>
-  <description>ed_people_detector</description>
+  <description>ed_people_detection</description>
 
   <maintainer email="MatthijsBurgh@outlook.com">Matthijs van der Burgh</maintainer>
 
@@ -11,12 +11,12 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <build_depend>ed</build_depend>
-  <build_depend>ed_people_detector_msgs</build_depend>
+  <build_depend>ed_people_detection_msgs</build_depend>
   <build_depend>people_detection_3d_msgs</build_depend>
   <build_depend>roscpp</build_depend>
 
   <run_depend>ed</run_depend>
-  <run_depend>ed_people_detector_msgs</run_depend>
+  <run_depend>ed_people_detection_msgs</run_depend>
   <run_depend>people_detection_3d_msgs</run_depend>
   <run_depend>roscpp</run_depend>
 
