@@ -12,7 +12,7 @@
 
 #include <tf/transform_listener.h>
 
-class PeopleDectectionPlugin : public ed::Plugin
+class PeopleRecognitionPlugin : public ed::Plugin
 {
 
 public:
@@ -20,12 +20,12 @@ public:
     /**
      * @brief constructor
      */
-    PeopleDectectionPlugin();
+    PeopleRecognitionPlugin();
 
     /**
      * @brief destructor
      */
-    virtual ~PeopleDectectionPlugin();
+    virtual ~PeopleRecognitionPlugin();
 
     /**
      * @brief configure

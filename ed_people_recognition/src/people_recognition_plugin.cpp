@@ -33,27 +33,27 @@ void VectorOfStringToStringOfVector(const std::vector<std::string>& vector, std:
 
 // ----------------------------------------------------------------------------------------------------
 
-PeopleDectectionPlugin::PeopleDectectionPlugin() : tf_listener_(nullptr)
+PeopleRecognitionPlugin::PeopleRecognitionPlugin() : tf_listener_(nullptr)
 {
 }
 
 // ----------------------------------------------------------------------------------------------------
 
-PeopleDectectionPlugin::~PeopleDectectionPlugin()
+PeopleRecognitionPlugin::~PeopleRecognitionPlugin()
 {
     delete tf_listener_;
 }
 
 // ----------------------------------------------------------------------------------------------------
 
-void PeopleDectectionPlugin::configure(tue::Configuration config)
+void PeopleRecognitionPlugin::configure(tue::Configuration config)
 {
     ros::NodeHandle nh("~/people_recognition");
     ros::NodeHandle nh2("~");
 
     ros::AdvertiseServiceOptions opt_srv_ed_people_recognition =
             ros::AdvertiseServiceOptions::create<ed_people_recognition_msgs::EdRecognizePeople>(
-                "detect_people", boost::bind(&PeopleDectectionPlugin::srvEdRecognizePeople, this, _1, _2),
+                "detect_people", boost::bind(&PeopleRecognitionPlugin::srvEdRecognizePeople, this, _1, _2),
                 ros::VoidPtr(), &cb_queue_);
 
     srv_ed_people_recognition_ = nh.advertiseService(opt_srv_ed_people_recognition);
@@ -70,7 +70,7 @@ void PeopleDectectionPlugin::configure(tue::Configuration config)
 
 // ----------------------------------------------------------------------------------------------------
 
-void PeopleDectectionPlugin::initialize()
+void PeopleRecognitionPlugin::initialize()
 {
     if (!tf_listener_)
         tf_listener_ = new tf::TransformListener();
@@ -78,7 +78,7 @@ void PeopleDectectionPlugin::initialize()
 
 // ----------------------------------------------------------------------------------------------------
 
-void PeopleDectectionPlugin::process(const ed::WorldModel& world, ed::UpdateRequest& req)
+void PeopleRecognitionPlugin::process(const ed::WorldModel& world, ed::UpdateRequest& req)
 {
     // Check for services
     world_ = &world;
@@ -89,7 +89,7 @@ void PeopleDectectionPlugin::process(const ed::WorldModel& world, ed::UpdateRequ
 
 // ----------------------------------------------------------------------------------------------------
 
-bool PeopleDectectionPlugin::srvEdRecognizePeople(const ed_people_recognition_msgs::EdRecognizePeople::Request& req, ed_people_recognition_msgs::EdRecognizePeople::Response& res)
+bool PeopleRecognitionPlugin::srvEdRecognizePeople(const ed_people_recognition_msgs::EdRecognizePeople::Request& req, ed_people_recognition_msgs::EdRecognizePeople::Response& res)
 {
     ROS_DEBUG_STREAM("[ED People Recognition]: srvEdRecognizePeople");
     people_recognition_msgs::RecognizePeople3DRequest req_3d;
