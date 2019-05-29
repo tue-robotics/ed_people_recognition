@@ -1,1 +1,0 @@
-# ed_people_detector
