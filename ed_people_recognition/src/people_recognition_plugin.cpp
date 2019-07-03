@@ -115,7 +115,7 @@ bool PeopleRecognitionPlugin::srvEdRecognizePeople(const ed_people_recognition_m
         const ed::EntityConstPtr& e = *it;
         if (e)
         {
-            if (e->hasType("unknown_person") && req.discard_unknown_persons)
+            if (e->hasType("unknown_person") && req.discard_unknown_people)
                 update_req_->removeEntity(e->id());
         }
     }
