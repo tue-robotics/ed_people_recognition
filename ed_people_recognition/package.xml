@@ -13,14 +13,9 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>ed</build_depend>
-  <build_depend>ed_people_recognition_msgs</build_depend>
-  <build_depend>people_recognition_msgs</build_depend>
-  <build_depend>roscpp</build_depend>
-
-  <exec_depend>ed</exec_depend>
-  <exec_depend>ed_people_recognition_msgs</exec_depend>
-  <exec_depend>people_recognition_msgs</exec_depend>
-  <exec_depend>roscpp</exec_depend>
+  <depend>ed</depend>
+  <depend>ed_people_recognition_msgs</depend>
+  <depend>people_recognition_msgs</depend>
+  <depend>roscpp</depend>
 
 </package>
