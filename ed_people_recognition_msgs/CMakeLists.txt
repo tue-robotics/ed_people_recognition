@@ -4,7 +4,6 @@ project(ed_people_recognition_msgs)
 find_package(catkin REQUIRED COMPONENTS
   message_generation
   sensor_msgs
-  std_msgs
 )
 
 add_service_files(
@@ -15,10 +14,9 @@ add_service_files(
 generate_messages(
   DEPENDENCIES
     sensor_msgs
-    std_msgs
 )
 
 catkin_package(
   CATKIN_DEPENDS
-    message_runtime sensor_msgs std_msgs
+    message_runtime sensor_msgs
 )
