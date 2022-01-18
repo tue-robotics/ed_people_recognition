@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<library path="lib/libed_people_recognition_plugin">
+  <class type="PeopleRecognitionPlugin" base_class_type="ed::Plugin">
+    <description>Plugin to integrate poeple recognitions in the WM.</description>
+  </class>
+</library>
