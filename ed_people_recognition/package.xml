@@ -18,4 +18,8 @@
   <depend>people_recognition_msgs</depend>
   <depend>roscpp</depend>
 
+  <export>
+    <ed plugin="${prefix}/plugins.xml" />
+  </export>
+
 </package>
