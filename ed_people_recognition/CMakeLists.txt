@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(ed_people_recognition)
 
+add_compile_options(-Wall -Werror=all)
+add_compile_options(-Wextra -Werror=extra)
+
 find_package(catkin REQUIRED COMPONENTS
   ed
   ed_people_recognition_msgs
