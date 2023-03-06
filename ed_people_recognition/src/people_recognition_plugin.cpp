@@ -11,7 +11,6 @@
 #include <people_recognition_msgs/RecognizePeople3D.h>
 
 #include <geolib/ros/msg_conversions.h>
-#include <geolib/ros/tf_conversions.h>
 #include <geolib/math_types.h>
 
 
@@ -33,7 +32,7 @@ void VectorOfStringToStringOfVector(const std::vector<std::string>& vector, std:
 
 // ----------------------------------------------------------------------------------------------------
 
-PeopleRecognitionPlugin::PeopleRecognitionPlugin() : tf_listener_(nullptr)
+PeopleRecognitionPlugin::PeopleRecognitionPlugin()
 {
 }
 
@@ -41,7 +40,6 @@ PeopleRecognitionPlugin::PeopleRecognitionPlugin() : tf_listener_(nullptr)
 
 PeopleRecognitionPlugin::~PeopleRecognitionPlugin()
 {
-    delete tf_listener_;
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -72,8 +70,6 @@ void PeopleRecognitionPlugin::configure(tue::Configuration config)
 
 void PeopleRecognitionPlugin::initialize()
 {
-    if (!tf_listener_)
-        tf_listener_ = new tf::TransformListener();
 }
 
 // ----------------------------------------------------------------------------------------------------
@@ -123,14 +119,14 @@ bool PeopleRecognitionPlugin::srvEdRecognizePeople(const ed_people_recognition_m
     for (auto it = res_3d.people.cbegin(); it != res_3d.people.cend(); ++it)
     {
         geo::Pose3D person_pose_tf = geo::Pose3D::identity();
-        tf::StampedTransform t_person_pose_tf;
         // Try to transform before doing anything. So there are no people with missing attributes.
         try
         {
-            tf_listener_->lookupTransform("map", it->header.frame_id, it->header.stamp, t_person_pose_tf);
-            geo::convert(t_person_pose_tf, person_pose_tf);
+            geometry_msgs::TransformStamped transform = tf_buffer_->lookupTransform("map", it->header.frame_id, it->header.stamp);
+
+            geo::convert(transform.transform, person_pose_tf);
         }
-        catch(const tf::TransformException& ex)
+        catch(const tf2::TransformException& ex)
         {
             ROS_ERROR_STREAM("[ED People Recognition]: Could not get transform to map" << ex.what());
             continue;
