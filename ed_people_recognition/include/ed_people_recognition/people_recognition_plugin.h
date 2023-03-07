@@ -10,8 +10,6 @@
 #include <ros/service.h>
 #include <ros/service_client.h>
 
-#include <tf/transform_listener.h>
-
 class PeopleRecognitionPlugin : public ed::Plugin
 {
 
@@ -60,8 +58,6 @@ private:
 
     const ed::WorldModel* world_;
     ed::UpdateRequest* update_req_;
-
-    tf::TransformListener* tf_listener_;
 
 };
 

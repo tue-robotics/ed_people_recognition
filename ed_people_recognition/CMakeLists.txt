@@ -6,14 +6,13 @@ add_compile_options(-Wextra -Werror=extra)
 
 find_package(catkin REQUIRED COMPONENTS
   ed
-  ed_people_recognition_msgs
+  ${PROJECT_NAME}_msgs
   people_recognition_msgs
   roscpp
 )
 
 catkin_package(
-  CATKIN_DEPENDS
-    ed ed_people_recognition_msgs roscpp
+  CATKIN_DEPENDS ed ${PROJECT_NAME}_msgs people_recognition_msgs roscpp
 )
 
 include_directories(
@@ -22,9 +21,34 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_library(ed_people_recognition_plugin
+add_library(${PROJECT_NAME}_plugin
   src/people_recognition_plugin.cpp
 )
 
-target_link_libraries(ed_people_recognition_plugin ${catkin_LIBRARIES})
-add_dependencies(ed_people_recognition_plugin ${catkin_EXPORTED_TARGETS})
+target_link_libraries(${PROJECT_NAME}_plugin ${catkin_LIBRARIES})
+add_dependencies(${PROJECT_NAME}_plugin ${catkin_EXPORTED_TARGETS})
+
+# ------------------------------------------------------------------------------------------------
+#                                          Install
+# ------------------------------------------------------------------------------------------------
+
+install(
+  FILES plugins.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
+install(
+  TARGETS ${PROJECT_NAME}_plugin
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+)
+
+# ------------------------------------------------------------------------------------------------
+#                                           TESTS
+# ------------------------------------------------------------------------------------------------
+
+if (CATKIN_ENABLE_TESTING)
+  find_package(catkin_lint_cmake REQUIRED)
+  catkin_add_catkin_lint_test("-W2 --ignore HEADER_OUTSIDE_PACKAGE_INCLUDE_PATH")
+endif()
