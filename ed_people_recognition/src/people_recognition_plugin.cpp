@@ -1,9 +1,17 @@
 #include "ed_people_recognition/people_recognition_plugin.h"
 
+#include <cv_bridge/cv_bridge.h>
+
 #include <ed/entity.h>
+#include <ed/measurement.h>
 #include <ed/update_request.h>
 #include <ed/world_model.h>
+
+#include <image_geometry/pinhole_camera_model.h>
+
 #include <tue/config/reader.h>
+
+#include <rgbd/image.h>
 
 #include <ros/node_handle.h>
 #include <ros/advertise_service_options.h>
@@ -92,6 +100,10 @@ bool PeopleRecognitionPlugin::srvEdRecognizePeople(const ed_people_recognition_m
     req_3d.image_rgb = req.image_rgb;
     req_3d.image_depth = req.image_depth;
     req_3d.camera_info_depth = req.camera_info_depth;
+
+    image_geometry::PinholeCameraModel cam_model;
+    cam_model.fromCameraInfo(req.camera_info_depth);
+    rgbd::Image image(cv_bridge::toCvCopy(req.image_rgb)->image, cv_bridge::toCvCopy(req.image_depth)->image, cam_model, req.image_rgb.header.frame_id, req.image_rgb.header.stamp.toSec());
 
     people_recognition_msgs::RecognizePeople3DResponse res_3d;
     if(!srv_people_recognition_3d_client_.call(req_3d, res_3d))
@@ -260,6 +272,9 @@ bool PeopleRecognitionPlugin::srvEdRecognizePeople(const ed_people_recognition_m
         data_config.endGroup();
 
         update_req_->addData(id_string, data_config.data());
+
+        ed::MeasurementConstPtr meas = ed::make_shared<ed::Measurement>();
+        update_req_->addMeasurement(id_string, meas);
 
         res.detected_person_ids.push_back(id_string);
     }
